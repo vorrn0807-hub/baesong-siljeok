@@ -1,0 +1,381 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<link rel="manifest" href="./manifest.json">
+<meta name="theme-color" content="#1976d2">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#2563eb">
+<title>배송실적관리</title>
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,"Noto Sans KR",sans-serif;background:#f5f7fb;color:#111827}
+header{background:#2563eb;color:white;padding:18px 16px 14px;position:sticky;top:0;z-index:5}
+header h1{margin:0;font-size:21px} header small{opacity:.85}
+nav{display:flex;background:white;border-bottom:1px solid #e5e7eb;position:sticky;top:61px;z-index:4}
+nav button{flex:1;padding:13px 4px;border:0;background:white;font-size:14px;color:#6b7280}
+nav button.active{color:#2563eb;font-weight:700;border-bottom:2px solid #2563eb}
+main{padding:14px;max-width:700px;margin:auto}.card{background:white;border-radius:14px;padding:15px;margin-bottom:12px;box-shadow:0 2px 8px #0000000b}
+.row{display:flex;gap:8px;align-items:center}.between{justify-content:space-between}
+button,.btn{border:0;border-radius:10px;padding:11px 14px;background:#2563eb;color:white;font-weight:600}
+.btn.gray{background:#eef2f7;color:#374151}.btn.red{background:#ef4444}
+input,select,textarea{width:100%;padding:11px;border:1px solid #d1d5db;border-radius:9px;font-size:15px;background:white}
+label{font-size:13px;color:#6b7280;display:block;margin:8px 0 5px}
+.calendar-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.calendar{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}.dow{text-align:center;color:#6b7280;font-size:12px;padding:5px}
+.day{min-height:64px;border:1px solid #e5e7eb;background:white;border-radius:8px;padding:5px;font-size:12px;text-align:left}
+.day.today{border:2px solid #2563eb}.day.selected{background:#dbeafe;border:3px solid #1d4ed8;box-shadow:0 0 0 2px #93c5fd;transform:scale(1.01);position:relative;z-index:1}.day.selected::after{content:"선택";position:absolute;right:3px;top:3px;font-size:8px;font-weight:800;color:#1d4ed8;background:white;border-radius:5px;padding:2px 4px}.day.selected .num{color:#1d4ed8!important}.day.has{background:#eff6ff}.day .num{font-weight:700}.day .count{color:#2563eb;font-size:11px;margin-top:5px}
+.summary{display:grid;grid-template-columns:1fr 1fr;gap:8px}.metric{background:#eff6ff;border-radius:12px;padding:13px}.metric b{display:block;font-size:20px;color:#1d4ed8;margin-top:4px}
+table{width:100%;border-collapse:collapse;font-size:13px}#statsTable table{table-layout:fixed;font-size:9px;width:100%}#statsTable th,#statsTable td{white-space:nowrap;overflow:hidden;text-overflow:clip;padding:7px 1px;line-height:1.15}#statsTable th:nth-child(1),#statsTable td:nth-child(1){width:20%;text-align:left}#statsTable th:nth-child(2),#statsTable td:nth-child(2){width:28%;text-align:center;font-size:8px}#statsTable th:nth-child(3),#statsTable td:nth-child(3){width:14%;text-align:center}#statsTable th:nth-child(4),#statsTable td:nth-child(4){width:17%;text-align:right}#statsTable th:nth-child(5),#statsTable td:nth-child(5){width:21%;text-align:right}th,td{padding:9px 4px;border-bottom:1px solid #eee;text-align:right}th:first-child,td:first-child{text-align:left}
+.hidden{display:none}.muted{color:#6b7280;font-size:13px}.empty{text-align:center;padding:30px;color:#9ca3af}
+.day .count,.day .income{font-size:10px;line-height:1.2;white-space:nowrap;overflow:hidden}.day .income{font-weight:700}
+.day.sun .num{color:#d00}.day.sat .num{color:#06c}
+.day.holiday{background:#f7f7f7}
+.day .holiday-label{font-size:9px;font-weight:700;color:#d00;line-height:1.1}
+.forecast-label{font-size:9px;line-height:1.2;font-weight:700;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.forecast-label.trip1{color:#7c3aed}.forecast-label.trip2{color:#0891b2}.forecast-label.total{color:#111827;border-top:1px solid #e5e7eb;margin-top:3px;padding-top:2px}
+.holiday-list{margin-top:10px}.holiday-item{display:flex;justify-content:space-between;align-items:center;padding:8px 10px;border:1px solid #ddd;border-radius:8px;margin-top:6px;font-size:13px}
+
+/* 스마트폰 최적화 */
+html,body{width:100%;max-width:100%;overflow-x:hidden}
+button,input,select{font-family:inherit;touch-action:manipulation}
+.day{min-width:0;min-height:82px;padding:4px 3px;display:flex;flex-direction:column;align-items:flex-start;justify-content:flex-start}
+.day .num{font-size:13px;line-height:1.1}
+.day .count,.day .income{width:100%;font-size:10px;line-height:1.35;margin-top:3px;letter-spacing:-.3px}
+.day .income{font-size:10px}
+@media (max-width:380px){
+  header{padding:14px 12px 11px} header h1{font-size:19px}
+  nav{top:55px} nav button{font-size:12px;padding:11px 2px}
+  main{padding:9px}.card{padding:11px;border-radius:12px;margin-bottom:9px}
+  .calendar{gap:2px}.dow{font-size:11px;padding:4px 1px}
+  .day{min-height:76px;padding:3px 2px;border-radius:6px}
+  .day .num{font-size:12px}.day .count,.day .income{font-size:9px;line-height:1.25;margin-top:2px;letter-spacing:-.45px}
+  .day .holiday-label{font-size:8px}
+  button,.btn{padding:10px 11px;font-size:13px}
+  input,select,textarea{padding:10px;font-size:16px}
+  label{font-size:12px}
+}
+@media (min-width:381px) and (max-width:600px){
+  main{padding:11px}.day{min-height:82px}.day .count,.day .income{font-size:10px}
+}
+@media (max-width:600px){
+  #statsTable table{font-size:8.5px}
+  #statsTable th,#statsTable td{padding:6px 0;white-space:nowrap}
+  #statsTable th:nth-child(2),#statsTable td:nth-child(2){font-size:7.5px}
+}
+@media (min-width:601px){
+  .day{min-height:88px}.day .count,.day .income{font-size:11px}
+}
+</style>
+</head>
+<body>
+<header><h1>배송실적관리</h1><small>7차 버전 · 캘린더에서 휴무일을 바로 입력할 수 있습니다</small></header>
+<nav>
+<button class="active" onclick="showTab('calendar',this)">캘린더</button>
+<button onclick="showTab('history',this)">실적내역</button>
+<button onclick="showTab('stats',this)">통계</button>
+<button onclick="showTab('forecast',this)">예상물량</button>
+<button onclick="showTab('settings',this)">설정</button>
+</nav>
+
+<main>
+<section id="calendar">
+<div class="card">
+ <div class="calendar-head">
+  <button class="btn gray" onclick="moveMonth(-1)">‹</button>
+  <strong id="monthTitle"></strong>
+  <button class="btn gray" onclick="moveMonth(1)">›</button>
+ </div>
+ <div class="calendar" id="calendarGrid"></div>
+</div>
+<div class="card" id="entryCard">
+ <div class="row between"><h3 id="entryTitle" style="margin:0">날짜를 선택하세요</h3><button class="btn gray" onclick="clearEntry()">초기화</button></div>
+ <label>배송 건수</label><input id="count" type="number" min="0" inputmode="numeric" placeholder="배송 건수">
+ <label>회수 건수</label><input id="returnCount" type="number" min="0" inputmode="numeric" placeholder="회수 건수">
+ <label>단가</label><input id="price" type="number" min="0" inputmode="numeric" placeholder="단가">
+ <label>수입금액</label><input id="income" readonly placeholder="자동 계산">
+ <div class="row" style="margin-top:12px"><button onclick="saveEntry()" style="flex:1">저장</button><button class="btn red" onclick="deleteEntry()" style="flex:1">삭제</button></div>
+ <div class="row" style="margin-top:8px"><button id="holidayToggle" class="btn gray" onclick="toggleHoliday()" style="flex:1">휴무일 지정</button></div>
+ </div>
+</section>
+
+<section id="history" class="hidden">
+<div class="card">
+ <h3 style="margin-top:0">정산기간</h3>
+ <p id="historyPeriodLabel" class="muted">전월 26일 ~ 당월 25일</p>
+ <div class="row"><div style="flex:1"><label>시작일</label><input id="from" type="date" onchange="renderHistory()"></div><div style="flex:1"><label>종료일</label><input id="to" type="date" onchange="renderHistory()"></div></div>
+</div>
+<div class="card summary"><div class="metric">총 처리건수<b id="totalCount">0건</b></div><div class="metric">총 수입금액<b id="totalIncome">0원</b></div></div>
+<div class="card"><h3 style="margin-top:0">실적내역</h3><div id="historyTable"></div></div>
+</section>
+
+
+<section id="stats" class="hidden">
+<div class="card">
+ <h3 style="margin-top:0">월별 통계</h3>
+ <p class="muted">정산기간: 전월 26일 ~ 당월 25일</p>
+</div>
+<div class="card summary">
+ <div class="metric">선택 정산월 총 건수<b id="statCount">0건</b></div>
+ <div class="metric">선택 정산월 총 수입<b id="statIncome">0원</b></div>
+</div>
+<div class="card">
+ <div class="calendar-head">
+  <button class="btn gray" onclick="moveStatMonth(-1)">‹</button>
+  <strong id="statMonthTitle"></strong>
+  <button class="btn gray" onclick="moveStatMonth(1)">›</button>
+ </div>
+ <div id="statPeriod" class="muted" style="margin-bottom:10px"></div>
+ <div id="statsTable"></div>
+</div>
+</section>
+
+<section id="forecast" class="hidden">
+<div class="card">
+ <h3 style="margin-top:0">일일예상물량</h3>
+ <p class="muted">디오비로지스 Trip1·Trip2 물량 공유 문자를 각각 붙여넣으면 라우트별 물량과 합계를 자동으로 계산합니다.</p>
+ <label>예상 날짜</label><input id="forecastDate" type="date">
+ <label>Trip1 추출 라우트</label><input id="forecastRoutes1" placeholder="예: 456A01, 457B01, 457B03, 457C02">
+ <label>Trip1 물량 공유 원문</label><textarea id="forecastRaw1" rows="7" placeholder="라우트 | 건수
+456A01 | 43
+457B01 | 58
+..."></textarea>
+ <label>Trip2 추출 라우트</label><input id="forecastRoutes2" placeholder="예: 456A01, 457B01">
+ <label>Trip2 물량 공유 원문</label><textarea id="forecastRaw2" rows="7" placeholder="라우트 | 건수
+456A01 | 20
+457B01 | 30
+..."></textarea>
+ <p class="muted">라우트는 쉼표(,)로 구분하세요. 마지막 설정이 자동 저장됩니다.</p>
+ <div class="row" style="margin-top:10px"><button onclick="extractForecast()" style="flex:1">물량 추출</button><button class="btn gray" onclick="clearForecastInput()" style="flex:1">초기화</button></div>
+</div>
+<div class="card">
+ <div class="row between"><h3 style="margin:0">추출 결과</h3><strong id="forecastTotal">합계 0건</strong></div>
+ <div id="forecastTable" style="margin-top:10px"></div>
+ <button onclick="saveForecast()" style="width:100%;margin-top:10px">예상물량 저장</button>
+ </div>
+<div class="card">
+ <h3 style="margin-top:0">저장된 일일예상물량</h3>
+ <div id="forecastHistory"></div>
+</div>
+</section>
+
+<section id="settings" class="hidden">
+<div class="card">
+<h3 style="margin-top:0">기본 설정</h3>
+<label>기본 단가</label><input id="defaultPrice" type="number" min="0" inputmode="numeric">
+<p class="muted">새 날짜에 실적을 입력할 때 기본 단가가 자동으로 적용됩니다.</p>
+<button onclick="saveSettings()">설정 저장</button>
+</div>
+<div class="card">
+<h3 style="margin-top:0">휴무일 관리</h3>
+<label>휴무일 날짜</label>
+<div class="row"><input id="holidayDate" type="date"><button onclick="addHoliday()">휴무일 추가</button></div>
+<div id="holidayList" class="holiday-list"></div>
+<p class="muted">등록한 날짜는 캘린더에 ‘휴무’로 표시됩니다.</p>
+</div>
+<div class="card">
+<h3 style="margin-top:0">데이터 관리</h3>
+<button class="btn gray" onclick="exportData()">데이터 백업</button>
+<button class="btn red" onclick="resetAll()">전체 데이터 삭제</button>
+</div>
+</section>
+</main>
+
+<script>
+const KEY='deliveryPerformance_v1';
+let data=JSON.parse(localStorage.getItem(KEY)||'{"entries":{},"defaultPrice":0,"holidays":[],"forecasts":{},"forecastRoutes":["456A01","457B01","457B03","457C02"]}');
+if(!data.forecasts || typeof data.forecasts!=='object') data.forecasts={};
+if(!Array.isArray(data.forecastRoutes1) || !data.forecastRoutes1.length) data.forecastRoutes1=Array.isArray(data.forecastRoutes)?data.forecastRoutes:['456A01','457B01','457B03','457C02'];
+if(!Array.isArray(data.forecastRoutes2) || !data.forecastRoutes2.length) data.forecastRoutes2=Array.isArray(data.forecastRoutes1)?data.forecastRoutes1.slice():['456A01','457B01','457B03','457C02'];
+if(!Array.isArray(data.holidays)) data.holidays=[];
+let selectedDate='';
+let cursor=new Date();
+const won=n=>Number(n||0).toLocaleString('ko-KR')+'원';
+function save(){localStorage.setItem(KEY,JSON.stringify(data))}
+function iso(d){
+ const y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,'0'),day=String(d.getDate()).padStart(2,'0');
+ return `${y}-${m}-${day}`;
+}
+function showTab(id,btn){document.querySelectorAll('main>section').forEach(s=>s.classList.add('hidden'));document.getElementById(id).classList.remove('hidden');document.querySelectorAll('nav button').forEach(b=>b.classList.remove('active'));btn.classList.add('active');if(id==='history')renderHistory();if(id==='calendar')renderCalendar();if(id==='stats')renderStats();if(id==='settings'){document.getElementById('defaultPrice').value=data.defaultPrice||'';renderHolidayList()}if(id==='forecast')renderForecast()}
+function moveMonth(n){cursor.setMonth(cursor.getMonth()+n);renderCalendar()}
+function renderCalendar(){
+ const y=cursor.getFullYear(),m=cursor.getMonth(); document.getElementById('monthTitle').textContent=`${y}년 ${m+1}월`;
+ const g=document.getElementById('calendarGrid');g.innerHTML=['일','월','화','수','목','금','토'].map(x=>`<div class="dow">${x}</div>`).join('');
+ const first=new Date(y,m,1).getDay(),last=new Date(y,m+1,0).getDate();
+ for(let i=0;i<first;i++)g.innerHTML+='<div></div>';
+ const today=iso(new Date());
+ for(let d=1;d<=last;d++){const key=`${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`,e=data.entries[key],dt=new Date(y,m,d),dow=dt.getDay(),holiday=data.holidays.includes(key);const count=e?Number(e.count||0):0, returnCount=e?Number(e.returnCount||0):0, income=e?Number(e.income||0):0;const hasForecast=false;const dayClass=dow===0?'sun':dow===6?'sat':'';g.innerHTML+=`<button class="day ${dayClass} ${holiday?'holiday ':''}${key===today?'today ':''}${key===selectedDate?'selected ':''}${e?'has ':''}${hasForecast?'has-forecast':''}" aria-selected="${key===selectedDate}" onclick="selectDate('${key}')"><div class="num">${d}</div>${holiday?'<div class="holiday-label">휴무</div>':''}${e?`<div class="count">배송 ${count.toLocaleString()}건</div><div class="count">회수 ${returnCount.toLocaleString()}건</div><div class="income">수입 ${income.toLocaleString()}원</div>`:''}</button>`}
+}
+function selectDate(key){selectedDate=key;renderCalendar();const e=data.entries[key];const holiday=data.holidays.includes(key);document.getElementById('entryTitle').textContent=key+(holiday?' 휴무일 · 실적입력':' 실적입력');document.getElementById('count').value=e?.count??'';document.getElementById('returnCount').value=e?.returnCount??'';document.getElementById('price').value=e?.price??data.defaultPrice??'';updateHolidayButton();calc()}
+function updateHolidayButton(){const b=document.getElementById('holidayToggle');if(!b)return;if(!selectedDate){b.textContent='날짜를 먼저 선택하세요';b.disabled=true;return}b.disabled=false;const h=data.holidays.includes(selectedDate);b.textContent=h?'휴무일 해제':'휴무일 지정';b.className=h?'btn red':'btn gray'}
+function toggleHoliday(){if(!selectedDate)return alert('먼저 캘린더에서 날짜를 선택하세요.');const i=data.holidays.indexOf(selectedDate);if(i>=0){data.holidays.splice(i,1)}else{data.holidays.push(selectedDate);data.holidays.sort()}save();updateHolidayButton();const holiday=data.holidays.includes(selectedDate);document.getElementById('entryTitle').textContent=selectedDate+(holiday?' 휴무일 · 실적입력':' 실적입력');renderCalendar();}
+function calc(){const c=Number(document.getElementById('count').value||0),r=Number(document.getElementById('returnCount').value||0),p=Number(document.getElementById('price').value||0);document.getElementById('income').value=won((c+r)*p)}
+document.getElementById('count').addEventListener('input',calc);document.getElementById('returnCount').addEventListener('input',calc);document.getElementById('price').addEventListener('input',calc);
+function saveEntry(){if(!selectedDate)return alert('먼저 날짜를 선택하세요.');const c=Number(document.getElementById('count').value||0),r=Number(document.getElementById('returnCount').value||0),p=Number(document.getElementById('price').value||0);data.entries[selectedDate]={count:c,returnCount:r,price:p,income:(c+r)*p};save();renderCalendar();alert('저장되었습니다.')}
+function deleteEntry(){if(!selectedDate||!data.entries[selectedDate])return; if(confirm('선택한 날짜의 실적을 삭제할까요?')){delete data.entries[selectedDate];save();clearEntry();renderCalendar()}}
+function clearEntry(){selectedDate='';document.getElementById('entryTitle').textContent='날짜를 선택하세요';['count','returnCount','price','income'].forEach(id=>document.getElementById(id).value='');updateHolidayButton()}
+function formatKoreanDate(isoDate){
+ const [y,m,d]=isoDate.split('-').map(Number);
+ return `${m}월 ${d}일`;
+}
+function setSettlementDates(year, month){
+ const p=getSettlementPeriod(year,month);
+ document.getElementById('from').value=p.from;
+ document.getElementById('to').value=p.to;
+ const label=document.getElementById('historyPeriodLabel');
+ if(label) label.textContent=`정산기간: ${formatKoreanDate(p.from)} ~ ${formatKoreanDate(p.to)}`;
+}
+function renderHistory(){
+ const keys=Object.keys(data.entries).sort(); let from=document.getElementById('from').value,to=document.getElementById('to').value;
+ const label=document.getElementById('historyPeriodLabel');
+ if(label){
+   if(from && to) label.textContent=`정산기간: ${formatKoreanDate(from)} ~ ${formatKoreanDate(to)}`;
+   else if(from) label.textContent=`정산기간: ${formatKoreanDate(from)} ~`;
+   else if(to) label.textContent=`정산기간: ~ ${formatKoreanDate(to)}`;
+   else label.textContent='정산기간을 설정하세요';
+ }
+ const rows=keys.filter(k=>(!from||k>=from)&&(!to||k<=to));
+ let tc=0,ti=0;rows.forEach(k=>{tc+=Number(data.entries[k].count||0)+Number(data.entries[k].returnCount||0);ti+=Number(data.entries[k].income||0)});
+ document.getElementById('totalCount').textContent=tc.toLocaleString()+'건';document.getElementById('totalIncome').textContent=won(ti);
+ document.getElementById('historyTable').innerHTML=rows.length?`<table><thead><tr><th>날짜</th><th>배송</th><th>회수</th><th>단가</th><th>수입</th></tr></thead><tbody>${rows.reverse().map(k=>{let e=data.entries[k];return `<tr><td>${k}</td><td>${Number(e.count||0).toLocaleString()}</td><td>${Number(e.returnCount||0).toLocaleString()}</td><td>${won(e.price)}</td><td>${won(e.income)}</td></tr>`}).join('')}</tbody></table>`:'<div class="empty">선택한 기간의 실적이 없습니다.</div>'
+}
+function saveSettings(){data.defaultPrice=Number(document.getElementById('defaultPrice').value||0);save();alert('기본 단가가 저장되었습니다.')}
+function exportData(){const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='배송실적관리_백업.json';a.click()}
+function addHoliday(){const v=document.getElementById('holidayDate').value;if(!v)return alert('휴무일 날짜를 선택하세요.');if(!data.holidays.includes(v)){data.holidays.push(v);data.holidays.sort();save();}document.getElementById('holidayDate').value='';renderHolidayList();renderCalendar();}
+function removeHoliday(v){data.holidays=data.holidays.filter(x=>x!==v);save();renderHolidayList();renderCalendar();}
+function renderHolidayList(){const el=document.getElementById('holidayList');if(!el)return;const arr=[...data.holidays].sort();el.innerHTML=arr.length?arr.map(v=>`<div class="holiday-item"><span>${v}</span><button class="btn red" onclick="removeHoliday('${v}')">삭제</button></div>`).join(''):'<div class="empty">등록된 휴무일이 없습니다.</div>';}
+function resetAll(){if(confirm('모든 실적을 삭제할까요? 이 작업은 되돌릴 수 없습니다.')){data={entries:{},defaultPrice:0,holidays:[],forecasts:{},forecastRoutes1:['456A01','457B01','457B03','457C02'],forecastRoutes2:['456A01','457B01','457B03','457C02']};save();renderCalendar();renderHolidayList();alert('삭제되었습니다.')}}
+
+let statCursor=new Date();
+
+function getSettlementPeriod(year, month){
+  // month는 정산월의 당월(0-based)입니다.
+  // 예: 2026년 9월 정산 = 2026-08-26 ~ 2026-09-25
+  // Date의 월 자동 보정 기능을 이용해 1월도 정확히 전년도 12월 26일부터 계산합니다.
+  const from = new Date(year, month - 1, 26);
+  const to = new Date(year, month, 25);
+  return { from: iso(from), to: iso(to) };
+}
+function getSettlementMonthLabel(year, month){
+  return `${year}년 ${month + 1}월 정산`;
+}
+function sumSettlement(period){
+  let count = 0, income = 0, workdays = 0;
+  Object.keys(data.entries).forEach(k => {
+    if(k >= period.from && k <= period.to){
+      const e = data.entries[k] || {};
+      count += Number(e.count || 0) + Number(e.returnCount || 0);
+      income += Number(e.income || 0);
+      if(Number(e.count || 0) + Number(e.returnCount || 0) > 0) workdays++;
+    }
+  });
+  return {count, income, workdays};
+}
+function moveStatMonth(n){
+  statCursor.setMonth(statCursor.getMonth()+n);
+  renderStats();
+}
+function renderStats(){
+  const y=statCursor.getFullYear(),m=statCursor.getMonth();
+  document.getElementById('statMonthTitle').textContent=getSettlementMonthLabel(y,m);
+  const p=getSettlementPeriod(y,m);
+  document.getElementById('statPeriod').textContent=`정산기간: ${formatKoreanDate(p.from)} ~ ${formatKoreanDate(p.to)}`;
+  const current = sumSettlement(p);
+  const tc = current.count, ti = current.income;
+  document.getElementById('statCount').textContent=tc.toLocaleString()+'건';
+  document.getElementById('statIncome').textContent=won(ti);
+
+  // 최근 12개 정산월
+  let rows=[];
+  for(let i=11;i>=0;i--){
+    const d=new Date(y,m-i,1);
+    const yy=d.getFullYear(),mm=d.getMonth();
+    const q=getSettlementPeriod(yy,mm);
+    const summary = sumSettlement(q);
+    rows.push({label:getSettlementMonthLabel(yy,mm),period:`${formatKoreanDate(q.from)} ~ ${formatKoreanDate(q.to)}`,workdays:summary.workdays,count:summary.count,income:summary.income});
+  }
+  // 기간 기준 내림차순(최근 정산기간부터)으로 표시
+  rows.sort((a,b)=>b.period.localeCompare(a.period));
+  document.getElementById('statsTable').innerHTML=`<table>
+  <thead><tr><th>정산월</th><th>기간</th><th>근무일수</th><th>건수</th><th>총수입</th></tr></thead>
+  <tbody>${rows.map(r=>`<tr><td>${r.label}</td><td>${r.period}</td><td>${r.workdays}일</td><td>${r.count.toLocaleString()}건</td><td>${won(r.income)}</td></tr>`).join('')}</tbody>
+  </table>`;
+}
+
+function renderForecast(){
+ const fd=document.getElementById('forecastDate'), fr1=document.getElementById('forecastRoutes1'), fr2=document.getElementById('forecastRoutes2');
+ if(!fd)return;
+ if(!fd.value) fd.value=iso(new Date());
+ fr1.value=(data.forecastRoutes1||['456A01','457B01','457B03','457C02']).join(', ');
+ fr2.value=(data.forecastRoutes2&&data.forecastRoutes2.length?data.forecastRoutes2:data.forecastRoutes1||['456A01','457B01','457B03','457C02']).join(', ');
+ const saved=data.forecasts[fd.value];
+ if(saved){
+   document.getElementById('forecastRaw1').value=saved.raw1||saved.raw||'';
+   document.getElementById('forecastRaw2').value=saved.raw2||'';
+   renderForecastResults(saved.items1||saved.items||[],saved.items2||[]);
+ }else{
+   document.getElementById('forecastRaw1').value='';
+   document.getElementById('forecastRaw2').value='';
+   renderForecastResults([],[]);
+ }
+ renderForecastHistory();
+}
+function getForecastRoutes(id){
+ return [...new Set((document.getElementById(id).value||'').split(/[,\s]+/).map(x=>x.trim().toUpperCase()).filter(Boolean))];
+}
+function parseForecastRaw(raw,routes){
+ const wanted=new Set(routes), found={};
+ String(raw||'').split(/\r?\n/).forEach(line=>{
+   const m=line.match(/\b(\d{3}[A-Z]\d{2})\b\s*[|:：,\t ]+\s*([\d,]+)/i);
+   if(m){const route=m[1].toUpperCase(); if(wanted.has(route)) found[route]=Number(m[2].replace(/,/g,''))||0;}
+ });
+ return routes.map(route=>({route,count:found[route]??0}));
+}
+function renderForecastResults(items1,items2){
+ const map1=Object.fromEntries(items1.map(x=>[x.route,Number(x.count||0)]));
+ const map2=Object.fromEntries(items2.map(x=>[x.route,Number(x.count||0)]));
+ const routes=[...new Set([...items1.map(x=>x.route),...items2.map(x=>x.route)])];
+ const total1=items1.reduce((a,b)=>a+Number(b.count||0),0), total2=items2.reduce((a,b)=>a+Number(b.count||0),0), total=total1+total2;
+ document.getElementById('forecastTotal').textContent=`Trip1 ${total1.toLocaleString()}건 · Trip2 ${total2.toLocaleString()}건 · 합계 ${total.toLocaleString()}건`;
+ document.getElementById('forecastTable').innerHTML=routes.length?`<table><thead><tr><th style="text-align:left">라우트</th><th>Trip1</th><th>Trip2</th><th>합계</th></tr></thead><tbody>${routes.map(r=>`<tr><td>${r}</td><td>${map1[r].toLocaleString()}건</td><td>${map2[r].toLocaleString()}건</td><td>${(map1[r]+map2[r]).toLocaleString()}건</td></tr>`).join('')}</tbody></table>`:'<div class="empty">추출할 라우트가 없습니다.</div>';
+}
+function extractForecast(){
+ const routes1=getForecastRoutes('forecastRoutes1'), routes2=getForecastRoutes('forecastRoutes2');
+ if(!routes1.length && !routes2.length)return alert('Trip1 또는 Trip2의 추출할 라우트를 입력하세요.');
+ data.forecastRoutes1=routes1; data.forecastRoutes2=routes2; save();
+ const items1=parseForecastRaw(document.getElementById('forecastRaw1').value,routes1);
+ const items2=parseForecastRaw(document.getElementById('forecastRaw2').value,routes2);
+ renderForecastResults(items1,items2);
+}
+function saveForecast(){
+ const date=document.getElementById('forecastDate').value;
+ if(!date)return alert('예상 날짜를 선택하세요.');
+ const routes1=getForecastRoutes('forecastRoutes1'), routes2=getForecastRoutes('forecastRoutes2');
+ if(!routes1.length && !routes2.length)return alert('Trip1 또는 Trip2의 추출할 라우트를 입력하세요.');
+ const raw1=document.getElementById('forecastRaw1').value, raw2=document.getElementById('forecastRaw2').value;
+ const items1=parseForecastRaw(raw1,routes1), items2=parseForecastRaw(raw2,routes2);
+ const total1=items1.reduce((a,b)=>a+Number(b.count||0),0), total2=items2.reduce((a,b)=>a+Number(b.count||0),0);
+ data.forecastRoutes1=routes1; data.forecastRoutes2=routes2;
+ data.forecasts[date]={raw1,raw2,items1,items2,total1,total2,total:total1+total2,savedAt:new Date().toISOString()};
+ save();renderForecastResults(items1,items2);renderForecastHistory();renderCalendar();alert(`${date} 일일예상물량이 저장되었습니다.`);
+}
+function clearForecastInput(){document.getElementById('forecastRaw1').value='';document.getElementById('forecastRaw2').value='';renderForecastResults([],[])}
+function deleteForecast(date){if(confirm(`${date} 예상물량을 삭제할까요?`)){delete data.forecasts[date];save();renderForecastHistory();renderCalendar();if(document.getElementById('forecastDate').value===date)clearForecastInput();}}
+function loadForecast(date){
+ document.getElementById('forecastDate').value=date;const x=data.forecasts[date]||{};
+ document.getElementById('forecastRaw1').value=x.raw1||x.raw||'';document.getElementById('forecastRaw2').value=x.raw2||'';
+ renderForecastResults(x.items1||x.items||[],x.items2||[]);
+}
+function renderForecastHistory(){
+ const el=document.getElementById('forecastHistory');if(!el)return;const dates=Object.keys(data.forecasts||{}).sort().reverse();
+ el.innerHTML=dates.length?`<table><thead><tr><th style="text-align:left">날짜</th><th>Trip1</th><th>Trip2</th><th>합계</th><th>관리</th></tr></thead><tbody>${dates.map(d=>{const x=data.forecasts[d]||{};return `<tr><td>${d}</td><td>${Number(x.total1||0).toLocaleString()}건</td><td>${Number(x.total2||0).toLocaleString()}건</td><td>${Number(x.total||0).toLocaleString()}건</td><td><button class="btn gray" onclick="loadForecast('${d}')">보기</button> <button class="btn red" onclick="deleteForecast('${d}')">삭제</button></td></tr>`}).join('')}</tbody></table>`:'<div class="empty">저장된 예상물량이 없습니다.</div>';
+}
+(function init(){const t=new Date();statCursor=new Date(t.getFullYear(),t.getMonth(),1);setSettlementDates(t.getFullYear(),t.getMonth());renderCalendar();renderHolidayList();})();
+</script>
+
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => navigator.serviceWorker.register('./service-worker.js').catch(()=>{}));
+}
+</script>
+</body></html>

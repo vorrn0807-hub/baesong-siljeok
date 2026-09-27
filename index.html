@@ -295,7 +295,7 @@ function renderStats(){
     rows.push({label:getSettlementMonthLabel(yy,mm),period:`${formatKoreanDate(q.from)} ~ ${formatKoreanDate(q.to)}`,workdays:summary.workdays,count:summary.count,income:summary.income});
   }
   // 기간 기준 내림차순(최근 정산기간부터)으로 표시
-  rows.sort((a,b)=>b.period.localeCompare(a.period));
+  rows.reverse();
   document.getElementById('statsTable').innerHTML=`<table>
   <thead><tr><th>정산월</th><th>기간</th><th>근무일수</th><th>건수</th><th>총수입</th></tr></thead>
   <tbody>${rows.map(r=>`<tr><td>${r.label}</td><td>${r.period}</td><td>${r.workdays}일</td><td>${r.count.toLocaleString()}건</td><td>${won(r.income)}</td></tr>`).join('')}</tbody>
